@@ -1,0 +1,6 @@
+VisitID,PatientID,VisitDate,ReasonForVisit,Physician,Height_cm,Weight_kg,BloodPressure_Systolic,BloodPressure_Diastolic,HeartRate_bpm,Notes
+5001,1001,2025-01-15,Annual Checkup,Dr. Smith,165,68,120,78,72,"Routine annual exam. BP within normal; advised low-sodium diet."
+5002,1001,2025-06-10,Follow-up Hypertension,Dr. Smith,165,68,130,82,74,"BP slightly elevated. Increased Lisinopril to 20mg."
+5003,1002,2025-02-20,Diabetes Management,Dr. Patel,178,85,118,76,70,"HbA1c pending. Advised diet modification, exercise."
+5004,1003,2025-03-12,Asthma Review,Dr. Lee,160,60,115,75,68,"No asthma attacks since last visit. Refill Albuterol."
+5005,1004,2025-04-05,Cholesterol Check,Dr. Nguyen,172,90,122,80,75,"LDL 160 mg/dL. Continue Atorvastatin; add dietary counseling."

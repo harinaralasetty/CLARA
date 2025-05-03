@@ -1,0 +1,6 @@
+ConditionID,PatientID,ConditionName,DiagnosisDate,Status,Notes
+2001,1001,Hypertension,2018-07-20,Active,"On Lisinopril 20mg daily"
+2002,1002,Type 2 Diabetes,2015-11-10,Active,"Metformin 500mg BID; diet-controlled"
+2003,1003,Asthma,2000-05-05,Active,"Mild intermittent, uses inhaler PRN"
+2004,1004,High Cholesterol,2019-02-14,Active,"On Atorvastatin 20mg"
+2005,1005,Anxiety,2021-09-01,Active,"Sertraline 50mg; therapy every other week"

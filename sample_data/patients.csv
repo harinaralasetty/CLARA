@@ -1,0 +1,4 @@
+PatientID,FirstName,LastName,DOB,Gender,Phone,Email,Address,City,State,Zip,PrimaryPhysician,InsuranceProvider,PolicyNumber
+1001,Emily,Johnson,1985-04-12,F,555-123-4567,emily.johnson@example.com,123 Maple St,Springfield,IL,62704,Dr. Smith,HealthPlus,HP-123456
+1002,Michael,Williams,1972-09-30,M,555-234-5678,m.williams@example.com,456 Oak Ave,Riverton,CA,94555,Dr. Patel,WellCare,WC-654321
+1003,Olivia,Brown,1990-11-05,F,555-345-6789,olivia.brown@example.com,789 Pine Rd,Laketown,NY,12078,Dr. Lee,Medicare,MD-789012
