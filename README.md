@@ -57,4 +57,4 @@ This project is licensed under the Apache-2.0 license.
 
 ## Contact
 
-For any questions or feedback, please contact me on LinkedIn: [Hari Naralasetty](https://www.linkedin.com/in/hnaralasetty/)
+For any questions or feedback, please contact us on LinkedIn: [Hari Naralasetty](https://www.linkedin.com/in/hnaralasetty/), [Poojith NGR](https://www.linkedin.com/in/poojith-ngr/)
