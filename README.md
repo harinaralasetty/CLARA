@@ -3,8 +3,9 @@
 Clinical Link And Retrieval Assistant (CLARA) is an AI-powered system designed to assist clinicians by answering natural language questions based on a patient’s medical history. Basing on [Completely OpenSource Retrieval Augmented Generation (CORAG)](https://github.com/harinaralasetty/CORAG), it uses Retrieval-Augmented Generation (RAG) combined with an agent-driven architecture to deliver accurate, context-aware responses grounded in structured and unstructured patient data. 
 
 ## Overview
-
 CLARA processes a patient's medical records—including history of medical conditions, clinical notes, lab results, imaging summaries, and more through a mixture of RAG and LLM based architecture. When a user asks a question, the system retrieves relevant historical data, constructs a tailored prompt, and uses a large language model (LLM) to generate an informed answer. The system also supports uploading of medical documents to extract and store the data. 
+
+Note: This is a work in progress; not all features are fully implemented yet.
 
 ## Key Features
 - Patient-Aware Q&A: CLARA intelligently responds to questions using only the relevant portions of a patient’s medical history.
