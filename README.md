@@ -15,7 +15,7 @@ CLARA processes a patient's medical records—including history of medical condi
 
 ## Flow
 
-![Flowchart](https://github.com/harinaralasetty/Retrieval_Augmented_Generation/blob/main/Flowchart.png)
+![Flowchart](https://github.com/harinaralasetty/CLARA/blob/main/CLARA.png)
 
 ## Getting Started
 
@@ -46,7 +46,7 @@ streamlit run server_streamlit.py
 
 ## Screenshots
 
-![Screenshot](https://github.com/harinaralasetty/CLARA/blob/main/Clara_screenshot.png)
+![Screenshot](https://github.com/harinaralasetty/CLARA/blob/main/screenshot.png)
 
 ## Contributing
 
