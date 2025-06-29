@@ -75,7 +75,7 @@ st.markdown("""
     <style>
         /* Add margin above the chat input box */
         div[data-testid="stChatInput"] {
-            margin-top: 5rem;
+            margin-top: 0;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -147,159 +147,161 @@ with st.sidebar:
                 st.rerun()
 
 # --------- Main Content Area with Tabs ---------
-tab1, tab2 = st.tabs(["Chat", "Data Sheet"])
+# Datasheet tab for the future versions
+# tab1, tab2 = st.tabs(["Chat", "Data Sheet"])
 
-with tab1:
-    if st.session_state.current_thread:
-        current_thread_data = st.session_state.chat_threads[st.session_state.current_thread]
-        current_thread_name = current_thread_data.get("name", "Unnamed Thread")
-        st.title(f"{current_thread_name}")
+# with tab1:
+if st.session_state.current_thread:
+    current_thread_data = st.session_state.chat_threads[st.session_state.current_thread]
+    current_thread_name = current_thread_data.get("name", "Unnamed Thread")
+    st.title(f"{current_thread_name}")
 
-        # Display the uploaded files for this thread
-        processed_files = current_thread_data.get('processed_files', [])
-        if processed_files:
-            st.markdown("#### Files uploaded in this thread:")
-            for file_info in processed_files:
-                st.write(f"- **{file_info['name']}** (type: {file_info['type']})")
-    else:
-        st.title("Hey there!")
+    # Display the uploaded files for this thread
+    processed_files = current_thread_data.get('processed_files', [])
+    if processed_files:
+        st.markdown("#### Files uploaded in this thread:")
+        for file_info in processed_files:
+            st.write(f"- **{file_info['name']}** (type: {file_info['type']})")
+else:
+    st.title("Hey there!")
 
-    # --------- File Uploader and Controls ---------
-    uploader_key = (
-        f"uploader_{st.session_state.current_thread}"
-        if st.session_state.current_thread
-        else "uploader_none"
+# --------- File Uploader and Controls ---------
+uploader_key = (
+    f"uploader_{st.session_state.current_thread}"
+    if st.session_state.current_thread
+    else "uploader_none"
+)
+with st.container():
+    uploaded_file = st.file_uploader(
+        "📄 Upload Documents (PDF, MP3, WAV)",
+        type=["pdf", "mp3", "wav"],
+        help="Upload your documents here for analysis",
+        key=uploader_key
     )
-    with st.container():
-        uploaded_file = st.file_uploader(
-            "📄 Upload Documents (PDF, MP3, WAV)",
-            type=["pdf", "mp3", "wav"],
-            help="Upload your documents here for analysis",
-            key=uploader_key
-        )
 
-    # --------- Chat Display ---------
-    st.divider()
-    with st.container():
-        if st.session_state.current_thread:
-            messages = current_thread_data.get("messages", [])
-            if len(messages) == 0:
-                st.info(get_random_greeting())
-            else:
-                for message in messages:
-                    if message.get('user'):
-                        with st.chat_message("user", avatar="👤"):
-                            st.markdown(message['user'])
-                    if message.get('answer'):
-                        with st.chat_message("assistant", avatar="🤖"):
-                            st.markdown(message['answer'])
-        else:
+# --------- Chat Display ---------
+st.divider()
+with st.container():
+    if st.session_state.current_thread:
+        messages = current_thread_data.get("messages", [])
+        if len(messages) == 0:
             st.info(get_random_greeting())
-
-    # --------- User Input for Chat ---------
-    user_question = st.chat_input("Type your question here...")
-
-    # --------- Handle Chat Submission ---------
-    if user_question:
-        # If no thread or user clicked +New Thread, create one
-        if st.session_state.new_thread_pending or not st.session_state.current_thread:
-            thread_id = str(uuid.uuid4())
-            st.session_state.current_thread = thread_id
-            st.session_state.thread_temp_data = {
-                "name": "Temporary Thread",
-                "messages": [],
-                "processed_files": [],
-                "document_theme": "",
-                "last_updated_at": datetime.now().isoformat(),
-                "created_at": datetime.now().isoformat()
-            }
-            st.session_state.chat_threads[thread_id] = st.session_state.thread_temp_data
-            st.session_state.new_thread_pending = False
-
-        try:
-            with st.spinner("Processing your query..."):
-                # Retrieve the thread object
-                thread_id = st.session_state.current_thread
-                current_thread = st.session_state.chat_threads[thread_id]
-
-                # Check for newly uploaded file
-                if uploaded_file is not None:
-                    # Only process if new
-                    already_processed = any(
-                        f["name"] == uploaded_file.name
-                        for f in current_thread["processed_files"]
-                    )
-                    if not already_processed:
-                        with st.spinner("Processing file..."):
-                            if uploaded_file.type == "application/pdf":
-                                extracted_text, theme = cached_process_pdf(uploaded_file)
-
-                            elif uploaded_file.type in ["audio/mpeg", "audio/wav"]:
-                                extracted_text, theme = cached_transcribe_audio(uploaded_file)
-                            else:
-                                st.warning("Unsupported file type uploaded.")
-                                extracted_text, theme = "", ""
-
-                            if extracted_text:
-                                # Save info about the file
-                                current_thread["processed_files"].append(
-                                    {"name": uploaded_file.name, "type": uploaded_file.type}
-                                )
-                                # Store theme
-                                current_thread["document_theme"] = theme
-
-                                # Generate embeddings in inference_manager
-                                vectors, original_data = process_embeddings(extracted_text)
-
-                                # Save both to session_state
-                                st.session_state.text_per_thread[thread_id] = original_data
-                                st.session_state.vectors_per_thread[thread_id] = vectors
-                            else:
-                                st.warning("No text extracted from file.")
-                    # If already processed, do nothing special here
-
-                # Grab current known vectors and texts
-                vectors = st.session_state.vectors_per_thread.get(thread_id, [])
-                original_data = st.session_state.text_per_thread.get(thread_id, [])
-
-                # Now pass them to process_answer
-                answer = process_answer(
-                    config.BASE_PROMPT,
-                    thread_name=thread_id,
-                    question=user_question,
-                    conditions=get_patient_conditions(patient_df, selected_user),
-                    original_data=original_data,
-                    vectors=vectors,
-                    chat_history=get_chat_history(current_thread),
-                    document_theme=current_thread.get("document_theme", ""),
-                    inference_model = selected_model
-                )
-
-                # Store the new Q&A
-                current_thread.setdefault("messages", []).append(
-                    {"user": user_question, "answer": answer}
-                )
-
-                # Rename thread if it's still "Temporary Thread"
-                if current_thread.get("name") == "Temporary Thread":
-                    new_thread_name = chat_namer(user_question, answer, selected_model)
-                    current_thread["name"] = new_thread_name
-
-                # Update last_updated_at
-                current_thread["last_updated_at"] = datetime.now().isoformat()
-                save_chat_threads_info(st.session_state.chat_threads)
-
-                st.rerun()  # Refresh the UI
-
-        except Exception as e:
-            st.error(f"Error: {e}")
-            st.error(traceback.format_exc())
-
-with tab2:
-    st.subheader("Data in Spreadsheet Format")
-    if st.session_state.current_thread and st.session_state.text_per_thread.get(st.session_state.current_thread):
-        data_list = st.session_state.text_per_thread[st.session_state.current_thread]
-        df = pd.DataFrame(data_list, columns=['Text'])  # Adjust columns as needed
-        st.data_editor(df)
+        else:
+            for message in messages:
+                if message.get('user'):
+                    with st.chat_message("user", avatar="👤"):
+                        st.markdown(message['user'])
+                if message.get('answer'):
+                    with st.chat_message("assistant", avatar="🤖"):
+                        st.markdown(message['answer'])
     else:
-        st.info("No data available to display in the spreadsheet yet. Upload and process a document in the 'Chat' tab.")
+        st.info(get_random_greeting())
+
+# --------- User Input for Chat ---------
+user_question = st.chat_input("Type your question here...")
+
+# --------- Handle Chat Submission ---------
+if user_question:
+    # If no thread or user clicked +New Thread, create one
+    if st.session_state.new_thread_pending or not st.session_state.current_thread:
+        thread_id = str(uuid.uuid4())
+        st.session_state.current_thread = thread_id
+        st.session_state.thread_temp_data = {
+            "name": "Temporary Thread",
+            "messages": [],
+            "processed_files": [],
+            "document_theme": "",
+            "last_updated_at": datetime.now().isoformat(),
+            "created_at": datetime.now().isoformat()
+        }
+        st.session_state.chat_threads[thread_id] = st.session_state.thread_temp_data
+        st.session_state.new_thread_pending = False
+
+    try:
+        with st.spinner("Processing your query..."):
+            # Retrieve the thread object
+            thread_id = st.session_state.current_thread
+            current_thread = st.session_state.chat_threads[thread_id]
+
+            # Check for newly uploaded file
+            if uploaded_file is not None:
+                # Only process if new
+                already_processed = any(
+                    f["name"] == uploaded_file.name
+                    for f in current_thread["processed_files"]
+                )
+                if not already_processed:
+                    with st.spinner("Processing file..."):
+                        if uploaded_file.type == "application/pdf":
+                            extracted_text, theme = cached_process_pdf(uploaded_file)
+
+                        elif uploaded_file.type in ["audio/mpeg", "audio/wav"]:
+                            extracted_text, theme = cached_transcribe_audio(uploaded_file)
+                        else:
+                            st.warning("Unsupported file type uploaded.")
+                            extracted_text, theme = "", ""
+
+                        if extracted_text:
+                            # Save info about the file
+                            current_thread["processed_files"].append(
+                                {"name": uploaded_file.name, "type": uploaded_file.type}
+                            )
+                            # Store theme
+                            current_thread["document_theme"] = theme
+
+                            # Generate embeddings in inference_manager
+                            vectors, original_data = process_embeddings(extracted_text)
+
+                            # Save both to session_state
+                            st.session_state.text_per_thread[thread_id] = original_data
+                            st.session_state.vectors_per_thread[thread_id] = vectors
+                        else:
+                            st.warning("No text extracted from file.")
+                # If already processed, do nothing special here
+
+            # Grab current known vectors and texts
+            vectors = st.session_state.vectors_per_thread.get(thread_id, [])
+            original_data = st.session_state.text_per_thread.get(thread_id, [])
+
+            # Now pass them to process_answer
+            answer = process_answer(
+                config.BASE_PROMPT,
+                thread_name=thread_id,
+                question=user_question,
+                conditions=get_patient_conditions(patient_df, selected_user),
+                original_data=original_data,
+                vectors=vectors,
+                chat_history=get_chat_history(current_thread),
+                document_theme=current_thread.get("document_theme", ""),
+                inference_model = selected_model
+            )
+
+            # Store the new Q&A
+            current_thread.setdefault("messages", []).append(
+                {"user": user_question, "answer": answer}
+            )
+
+            # Rename thread if it's still "Temporary Thread"
+            if current_thread.get("name") == "Temporary Thread":
+                new_thread_name = chat_namer(user_question, answer, selected_model)
+                current_thread["name"] = new_thread_name
+
+            # Update last_updated_at
+            current_thread["last_updated_at"] = datetime.now().isoformat()
+            save_chat_threads_info(st.session_state.chat_threads)
+
+            st.rerun()  # Refresh the UI
+
+    except Exception as e:
+        st.error(f"Error: {e}")
+        st.error(traceback.format_exc())
+
+# Data Sheet tab for the future versions
+# with tab2:
+#     st.subheader("Data in Spreadsheet Format")
+#     if st.session_state.current_thread and st.session_state.text_per_thread.get(st.session_state.current_thread):
+#         data_list = st.session_state.text_per_thread[st.session_state.current_thread]
+#         df = pd.DataFrame(data_list, columns=['Text'])  # Adjust columns as needed
+#         st.data_editor(df)
+    # else:
+    #     st.info("No data available to display in the spreadsheet yet. Upload and process a document in the 'Chat' tab.")

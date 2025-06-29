@@ -7,4 +7,4 @@ def calculator(expression: str) -> int:
 
     result = eval(expression)
     print(f"Calculator result: {result}")
-    return 
+    return result
